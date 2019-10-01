@@ -1,0 +1,64 @@
+<!-- This is a static file -->
+<!-- served from your routes in server.js -->
+
+<!-- You might want to try something fancier: -->
+<!-- html/nunjucks docs: https://mozilla.github.io/nunjucks/ -->
+<!-- pug: https://pugjs.org/ -->
+<!-- haml: http://haml.info/ -->
+<!-- hbs(handlebars): http://handlebarsjs.com/ -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Triptograph</title>
+    <meta name="description" content="Simple triptographic result sourced from wikimedia.org">
+    <link id="favicon" rel="icon" href="https://glitch.com/edit/favicon-app.ico" type="image/x-icon">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script>
+      // upgrade to https in case a person arrives on the non-https version, in which `fetch` won't work
+      if (window.location.protocol != "https:") {
+        window.location = "https://" + window.location.hostname;
+      }
+    </script>
+    
+    <!-- import the webpage's stylesheet -->
+    <link href="https://fonts.googleapis.com/css?family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    <header>
+      <h1>
+        Triptograph
+        <sub>
+          Unlimited Edition #<span class="hit_counter project_name=triptograph"></span>
+        </sub>
+      </h1>
+    </header>
+
+    <main>
+      <object data="https://triptograph.glitch.me/image.svg" type="image/svg+xml">
+          Something went wrong, your browser must be capable of viewing SVG files, reload your browser to try again.
+       </object>
+    </main>
+
+    <footer>
+      Another fine <a href="https://jkirchartz.com">JKirchartz</a> Product. 
+      Made with <a href="https://glitch.com">Glitch</a> &amp; <a href="https://commons.wikimedia.org">Wikimedia Commons</a>.
+    <p>
+      <a href="https://en.wikipedia.org/wiki/Surrealist_techniques#Triptography">Triptography</a> is an automatic photographic technique whereby a roll of film is used three times, causing it to be triple-exposed in such a way that the chances of any single photograph having a clear and definite subject is nearly impossible.
+      This app emulates that technique with images from wikimedia & an automatically generated SVG file.
+    </p>
+    
+     <!-- View Source Button -->
+<a href="https://glitch.com/edit/#!/triptograph" style="display:block; margin: 1em;">
+  <img src="https://cdn.glitch.com/2bdfb3f8-05ef-4035-a06e-2043962a3a13%2Fview-source%402x.png?1513093958802" alt="view source" height="33">
+</a>
+
+    <script type="text/javascript" src="https://ko-fi.com/widgets/widget_2.js"></script><script type="text/javascript">kofiwidget2.init('Support Me on Ko-fi', '#29abe0', 'Q5Q79ZEI');kofiwidget2.draw();</script> 
+    </footer>
+    <script src="https://triptograph.glitch.me/js/hit-counter.js"></script>
+  </body>
+</html>
