@@ -6,7 +6,8 @@
 }
 
 body {
-  font-family: "Nanum Pen Script", "Benton Sans", "Helvetica Neue", helvetica, arial, sans-serif;
+  font-family: "Nanum Pen Script", "Benton Sans", "Helvetica Neue", helvetica,
+    arial, sans-serif;
   margin: 2em;
 }
 
@@ -77,4 +78,3 @@ button:active {
 li {
   margin-bottom: 5px;
 }
-
