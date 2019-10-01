@@ -1,10 +1,7 @@
 {
-  "//1": "describes your app and its dependencies",
-  "//2": "https://docs.npmjs.com/files/package.json",
-  "//3": "updating this file will download and update your packages",
-  "name": "hello-express",
+  "name": "Triptograph",
   "version": "0.0.1",
-  "description": "A simple Node app built on Express, instantly up and running.",
+  "description": "Create dream-like automatic SVG images.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
@@ -13,7 +10,7 @@
     "express": "^4.16.4",
     "request": "^2.88.0",
     "save-svg-as-png": "^1.4.14",
-    "browserify-middleware": "^7.1.0",
+    "browserify-middleware": "^8.1.1",
     "jsdom": "^15.1.1",
     "cors": "^2.8.5"
   },
@@ -21,12 +18,15 @@
     "node": "8.x"
   },
   "repository": {
-    "url": "https://glitch.com/edit/#!/hello-express"
+    "url": "https://github.com/JKirchartz/triptograph"
   },
   "license": "MIT",
   "keywords": [
     "node",
     "glitch",
-    "express"
+    "express",
+    "art",
+    "triptography",
+    "surrealism"
   ]
 }
