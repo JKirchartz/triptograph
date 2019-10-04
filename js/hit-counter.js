@@ -24,5 +24,4 @@ function getHitCounts() {
 }
 
 getHitCounts();
-// check for new hits every ten sections;
-setInterval(getHitCounts, 10000);
+setInterval(getHitCounts, 1000000);

@@ -52,7 +52,7 @@
     </header>
 
     <main>
-      <object
+      <object id="svg" class="loading"
         data="https://triptograph.glitch.me/image.svg"
         type="image/svg+xml"
       >
@@ -99,5 +99,11 @@
       </script>
     </footer>
     <script src="https://triptograph.glitch.me/js/hit-counter.js"></script>
+    <script>
+      let svg = document.getElementById('svg');
+      svg.addEventListener('load', function(event){
+        svg.className = "";
+      });
+    </script>
   </body>
 </html>
