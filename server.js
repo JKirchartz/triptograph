@@ -4,10 +4,10 @@
 // init project
 var browserify = require("browserify-middleware");
 const express = require("express");
-const pnger = require("save-svg-as-png");
 const jsdom = require("jsdom");
 var get = require("request");
 var cors = require("cors");
+var jimp = require("jimp");
 const app = express();
 app.use(cors());
 
@@ -32,7 +32,7 @@ function fetchImages(resultType) {
       "grnlimit=500",
       "list=allimages",
       "aiprop=url|dimensions",
-      "aimaxsize=200000",
+      type === "huge" ? "" : "aimaxsize=200000",
       "ailimit=500",
       "prop=imageinfo|images",
       "iiprop=url",
@@ -65,11 +65,46 @@ function fetchImages(resultType) {
             data.splice(Math.floor(Math.random() * data.length), 1)[0]
           );
         }
+        
+        if (resultType == "png") {
+          var jimps = [];
+
+          for (var i = 0; i < images.length; i++) {
+            jimps.push(jimp.read(images[i]));
+          }
+
+          Promise.all(jimps)
+            .then(function(data) {
+              return Promise.all(jimps);
+            })
+            .then(function(data) {
+              // todo, figure out how to offset these images per 'layer'
+              var x = width ? width : data[0].width;
+              var y = height ? height : data[0].height;
+              var offset = Math.floor(Math.random() * x);
+              var randOffset = Math.floor(Math.random() * offset);
+            
+              // layer one
+              data[0].composite(data[1], 0, offset, {mode:jimp.BLEND_LIGHTEN});
+              data[0].composite(data[2], 0, offset - data[2].width, {mode:jimp.BLEND_LIGHTEN});
+              // layer two
+              data[0].composite(data[3], 0, randOffset, {mode:jimp.BLEND_LIGHTEN});
+              data[0].composite(data[4], 0, randOffset - data[4].width, {mode:jimp.BLEND_LIGHTEN});
+              // write image
+              data[0].getBuffer("image/png", function(data){
+                res.setHeader("Content-type", "image/png");
+                res.send(data);
+              });
+            });
+
+        } else if (resultType == "svg") {
+        
         var output;
         var x = width ? width : images[0].width;
         var y = height ? height : images[0].height;
         var offset = Math.floor(Math.random() * x);
         var randOffset = Math.floor(Math.random() * offset);
+        
         if (type && type == "small") {
           output = `<svg viewBox="0 0 ${x} ${y}" preserveAspectRatio="xMidYMid slice" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"  xmlns:xlink="http://www.w3.org/1999/xlink">
 <filter id="blend" x="0" y="0" width="100%" height="100%">
@@ -105,17 +140,11 @@ function fetchImages(resultType) {
 <image xlink:href="${images[0].url}" style="filter:url(#blend);" />
 </svg>`;
         }
-        if (resultType == "png") {
-          pnger.svgAsPngUri(new jsdom(output), {}).then(function(output) {
-            console.log(output);
-            res.setHeader("Content-Type", "image/png");
-            res.send(output);
-          });
-        }
         if (resultType == "img") {
           res.setHeader("Content-Type", "image/svg+xml");
           res.send(output);
         }
+      }
       }
     });
   };
