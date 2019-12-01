@@ -10,9 +10,7 @@
     "express": "^4.16.4",
     "request": "^2.88.0",
     "browserify-middleware": "^8.1.1",
-    "jsdom": "^15.1.1",
-    "cors": "^2.8.5",
-    "jimp": "^0.8.4"
+    "cors": "^2.8.5"
   },
   "engines": {
     "node": "8.x"
