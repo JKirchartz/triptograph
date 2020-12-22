@@ -52,7 +52,9 @@
     </header>
 
     <main>
-      <object id="svg" class="loading"
+      <object
+        id="svg"
+        class="loading"
         data="https://triptograph.glitch.me/image.svg"
         type="image/svg+xml"
       >
@@ -62,9 +64,11 @@
     </main>
 
     <footer>
-      Another fine <a href="https://jkirchartz.com">JKirchartz</a> Product. Made
-      with <a href="https://glitch.com">Glitch</a> &amp;
-      <a href="https://commons.wikimedia.org">Wikimedia Commons</a>.
+  
+        Another fine <a href="https://jkirchartz.com">JKirchartz</a> Product.
+        Made with <a href="https://glitch.com">Glitch</a> &amp;
+        <a href="https://commons.wikimedia.org">Wikimedia Commons</a>.
+    
       <p>
         <a
           href="https://en.wikipedia.org/wiki/Surrealist_techniques#Triptography"
@@ -76,7 +80,14 @@
         nearly impossible. This app emulates that technique with images from
         wikimedia & an automatically generated SVG file.
       </p>
-
+    
+        <button id="dummy_download">
+          download
+        </button>
+        <a href="" id="download" style="display:none" download
+          >hidden download button</a
+        >
+      
       <!-- View Source Button -->
       <a
         href="https://glitch.com/edit/#!/triptograph"
@@ -100,9 +111,68 @@
     </footer>
     <script src="https://triptograph.glitch.me/js/hit-counter.js"></script>
     <script>
-      let svg = document.getElementById('svg');
-      svg.addEventListener('load', function(event){
+      let svg = document.getElementById("svg");
+      svg.addEventListener("load", function(event) {
         svg.className = "";
+      });
+      let downloadBtn = document.getElementById("dummy_download");
+      const toDataURL = url =>
+        fetch(url)
+          .then(response => response.blob())
+          .then(
+            blob =>
+              new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+              })
+          );
+      downloadBtn.addEventListener("click", function(event) {
+        var output = document
+          .getElementById("svg")
+          .getSVGDocument()
+          .getElementsByTagName("svg")[0].cloneNode(true);
+        
+        // by default the SVG has the dimensions of the first image loaded into it,
+        // but the website displays it the size of the browser (i.e. 100%), to save
+        // as an SVG file it needs more useful dimensions....
+        
+        var width = output.viewBox.baseVal.width;
+        var height = output.viewBox.baseVal.height;
+        if (width < 500 || height < 500 ) {
+          width = width * 3;
+          height = height * 3;
+        }
+        output.setAttribute("width", width);
+        output.setAttribute("height", height);
+        
+        var images = Array.from(output.querySelectorAll("image, feImage"));
+        var promises = [];
+        images.forEach(async i => {
+          promises.push(
+            toDataURL(
+              i.getAttributeNS("http://www.w3.org/1999/xlink", "href")
+            ).then(output => {
+              i.setAttributeNS("http://www.w3.org/1999/xlink", "href", output);
+            })
+          );
+        }); // convert all images to Base 64 encoding...
+        
+        Promise.all(promises) // embed all base64-encoded images into an SVG, jam it into the hidden download link, then click it to trigger a download.
+          .then(() => {
+            var dl = document.getElementById("download");
+            var file = new Blob([output.outerHTML], { type: "image/svg+xml" });
+            dl.href = URL.createObjectURL(file);
+            dl.download = "triptograph-" + Date.now() + ".svg";
+            dl.click();
+          })
+          .catch(e => {
+            alert(
+              "Failed to generate image, try again later..."
+            );
+            console.error(e);
+          });
       });
     </script>
   </body>

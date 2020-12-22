@@ -4,10 +4,12 @@
 // init project
 var browserify = require("browserify-middleware");
 const express = require("express");
-const jsdom = require("jsdom");
 var get = require("request");
 var cors = require("cors");
-var jimp = require("jimp");
+var fs = require("fs");
+var fetch = require("node-fetch");
+var Unsplash = require("unsplash-js").default;
+var toJson = require("unsplash-js").toJson;
 const app = express();
 app.use(cors());
 
@@ -66,91 +68,119 @@ function fetchImages(resultType) {
           );
         }
 
-        if (resultType == "png") {
-          var jimps = [];
+        var output;
+        var x = width ? width : images[0].width;
+        var y = height ? height : images[0].height;
+        var offset = Math.floor(Math.random() * x);
+        var randOffset = Math.floor(Math.random() * offset);
 
-          for (var i = 0; i < images.length; i++) {
-            jimps.push(jimp.read(images[i]));
-          }
-
-          Promise.all(jimps)
-            .then(function(data) {
-              return Promise.all(jimps);
-            })
-            .then(function(data) {
-              // todo, figure out how to offset these images per 'layer'
-              var x = width ? width : data[0].width;
-              var y = height ? height : data[0].height;
-              var offset = Math.floor(Math.random() * x);
-              var randOffset = Math.floor(Math.random() * offset);
-
-              // layer one
-              data[0].composite(data[1], 0, offset, {
-                mode: jimp.BLEND_LIGHTEN
-              });
-              data[0].composite(data[2], 0, offset - data[2].width, {
-                mode: jimp.BLEND_LIGHTEN
-              });
-              // layer two
-              data[0].composite(data[3], 0, randOffset, {
-                mode: jimp.BLEND_LIGHTEN
-              });
-              data[0].composite(data[4], 0, randOffset - data[4].width, {
-                mode: jimp.BLEND_LIGHTEN
-              });
-              // write image
-              data[0].getBuffer("image/png", function(data) {
-                res.setHeader("Content-type", "image/png");
-                res.send(data);
-              });
-            });
-        } else if (resultType == "svg") {
-          var output;
-          var x = width ? width : images[0].width;
-          var y = height ? height : images[0].height;
-          var offset = Math.floor(Math.random() * x);
-          var randOffset = Math.floor(Math.random() * offset);
-
-          if (type && type == "small") {
-            output = `<svg viewBox="0 0 ${x} ${y}" preserveAspectRatio="xMidYMid slice" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"  xmlns:xlink="http://www.w3.org/1999/xlink">
-<filter id="blend" x="0" y="0" width="100%" height="100%">
-<!-- first overlayer -->
-<feImage result="a" x="${offset}" xlink:href="${images[1].url}" />
-<feImage result="b" x="${offset - images[2].width}"  xlink:href="${
-              images[2].url
-            }" />
-<feBlend result="frame1" in="a" in2="b" mode="lighten"/>
-<feBlend in="SourceGraphic" in2="frame1" mode="lighten"/>
-</filter>
-<image xlink:href="${images[0].url}" style="filter:url(#blend);" />
-</svg>`;
-          } else {
-            output = `<svg viewBox="0 0 ${x} ${y}" preserveAspectRatio="xMidYMid slice" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"  xmlns:xlink="http://www.w3.org/1999/xlink">
-<filter id="blend" x="0" y="0" width="100%" height="100%">
-<!-- first overlayer -->
-<feImage result="a" x="${offset}" xlink:href="${images[1].url}" />
-<feImage result="b" x="${offset - images[2].width}"  xlink:href="${
-              images[2].url
-            }" />
-<feBlend result="frame1" in="a" in2="b" mode="lighten"/>
-<!-- second overlayer -->
-<feImage result="c" x="${randOffset}" xlink:href="${images[3].url}" />
-<feImage result="d" x="${randOffset - images[4].width}"  xlink:href="${
-              images[4].url
-            }" />
-<feBlend result="frame2" in="c" in2="d" mode="lighten"/>
-<!-- apply results -->
-<feBlend result="overlay" in="frame1" in2="frame2" mode="lighten"/>
-<feBlend in="SourceGraphic" in2="overlay" mode="lighten"/>
-</filter>
-<image xlink:href="${images[0].url}" style="filter:url(#blend);" />
-</svg>`;
-            res.setHeader("Content-Type", "image/svg+xml");
-            res.send(output);
-          }
+        if (type && type == "small") {
+          output = `<svg viewBox="0 0 ${x} ${y}" preserveAspectRatio="xMidYMid slice" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"  xmlns:xlink="http://www.w3.org/1999/xlink">
+              <filter id="blend" x="0" y="0" width="100%" height="100%">
+                <!-- first overlayer -->
+                <feImage result="a" x="${offset}" xlink:href="${images[1].url}" />
+                <feImage result="b" x="${offset - images[2].width}"  xlink:href="${images[2].url}" />
+                <feBlend result="frame1" in="a" in2="b" mode="lighten"/>
+                <feBlend in="SourceGraphic" in2="frame1" mode="lighten"/>
+              </filter>
+              <image xlink:href="${images[0].url}" style="filter:url(#blend);" />
+              </svg>`;
+        } else {
+          output = `<svg viewBox="0 0 ${x} ${y}" preserveAspectRatio="xMidYMid slice" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"  xmlns:xlink="http://www.w3.org/1999/xlink">
+            <filter id="blend" x="0" y="0" width="100%" height="100%">
+              <!-- first overlayer -->
+              <feImage result="a" x="${offset}" xlink:href="${images[1].url}" />
+              <feImage result="b" x="${offset - images[2].width}"  xlink:href="${ images[2].url }" />
+              <feBlend result="frame1" in="a" in2="b" mode="lighten"/>
+              <!-- second overlayer -->
+              <feImage result="c" x="${randOffset}" xlink:href="${images[3].url}" />
+              <feImage result="d" x="${randOffset - images[4].width}"  xlink:href="${ images[4].url }" />
+              <feBlend result="frame2" in="c" in2="d" mode="lighten"/>
+              <!-- apply results -->
+              <feBlend result="overlay" in="frame1" in2="frame2" mode="lighten"/>
+              <feBlend in="SourceGraphic" in2="overlay" mode="lighten"/>
+            </filter>
+            <image xlink:href="${images[0].url}" style="filter:url(#blend);" />
+            </svg>`;
         }
+        res.setHeader("Content-Type", "image/svg+xml");
+        res.send(output);
       }
     });
+  };
+}
+
+
+function fetchImages2(resultType) {
+  /// alternatively, just make a static SVG using Unsplash URIs like here: https://glitch.com/edit/#!/unsplash-proxy?path=server.js%3A40%3A13
+  // https://source.unsplash.com/random/768x1024
+  return function(req, res) {
+    const unsplash = new Unsplash({ accessKey: process.env.APP_ACCESS_KEY });
+    
+    let type = req.query.type;
+    let width = req.query.x;
+    let height = req.query.y;
+    
+    unsplash.photos.getRandomPhoto({count: 100})
+    .then(toJson).then(function(
+      body
+    ) {
+        var data = JSON.parse(body);
+        data = data.query.allimages.filter(function(i) {
+          return ["jpg", "jpeg", "png", "bmp", "tiff", "gif"].includes(
+            i.url.split(".").pop()
+          );
+        });
+        if (resultType == "json") {
+          res.setHeader("Content-type", "application/json");
+          res.send(JSON.stringify(data));
+          return;
+        }
+        var images = [];
+        for (var i = 0; i < 5; i++) {
+          images.push(
+            data.splice(Math.floor(Math.random() * data.length), 1)[0]
+          );
+        }
+
+        var output;
+        var x = width ? width : images[0].width;
+        var y = height ? height : images[0].height;
+        var offset = Math.floor(Math.random() * x);
+        var randOffset = Math.floor(Math.random() * offset);
+
+        if (type && type == "small") {
+          output = `<svg viewBox="0 0 ${x} ${y}" preserveAspectRatio="xMidYMid slice" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"  xmlns:xlink="http://www.w3.org/1999/xlink">
+              <filter id="blend" x="0" y="0" width="100%" height="100%">
+                <!-- first overlayer -->
+                <feImage result="a" x="${offset}" xlink:href="${images[1].url}" />
+                <feImage result="b" x="${offset - images[2].width}"  xlink:href="${images[2].url}" />
+                <feBlend result="frame1" in="a" in2="b" mode="lighten"/>
+                <feBlend in="SourceGraphic" in2="frame1" mode="lighten"/>
+              </filter>
+              <image xlink:href="${images[0].url}" style="filter:url(#blend);" />
+              </svg>`;
+        } else {
+          output = `<svg viewBox="0 0 ${x} ${y}" preserveAspectRatio="xMidYMid slice" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"  xmlns:xlink="http://www.w3.org/1999/xlink">
+            <filter id="blend" x="0" y="0" width="100%" height="100%">
+              <!-- first overlayer -->
+              <feImage result="a" x="${offset}" xlink:href="${images[1].url}" />
+              <feImage result="b" x="${offset - images[2].width}"  xlink:href="${ images[2].url }" />
+              <feBlend result="frame1" in="a" in2="b" mode="lighten"/>
+              <!-- second overlayer -->
+              <feImage result="c" x="${randOffset}" xlink:href="${images[3].url}" />
+              <feImage result="d" x="${randOffset - images[4].width}"  xlink:href="${ images[4].url }" />
+              <feBlend result="frame2" in="c" in2="d" mode="lighten"/>
+              <!-- apply results -->
+              <feBlend result="overlay" in="frame1" in2="frame2" mode="lighten"/>
+              <feBlend in="SourceGraphic" in2="overlay" mode="lighten"/>
+            </filter>
+            <image xlink:href="${images[0].url}" style="filter:url(#blend);" />
+            </svg>`;
+        }
+        res.setHeader("Content-Type", "image/svg+xml");
+        res.send(output);
+      });
   };
 }
 
@@ -165,10 +195,10 @@ var glitchAuthToken = process.env.GLITCH_AUTH_TOKEN;
 app.get("/hits", function(request, res) {
   get(
     glitchApiUrl +
-      "/projects/" +
-      request.query.project_name +
-      "?authorization=" +
-      glitchAuthToken,
+    "/projects/" +
+    request.query.project_name +
+    "?authorization=" +
+    glitchAuthToken,
     function(err, response, body) {
       var data = JSON.parse(body);
       var glitchProjectDataToPublicize = {
@@ -181,8 +211,8 @@ app.get("/hits", function(request, res) {
 });
 
 app.get("/image.svg", fetchImages("img"));
-app.get("/image.png", fetchImages("png"));
-app.get("/image.json", fetchImages("json"));
+app.get("/images.json", fetchImages("json"));
+app.get("/upsplash.json", fetchImages2("json"));
 
 // listen for requests :)
 const listener = app.listen(process.env.PORT, function() {
